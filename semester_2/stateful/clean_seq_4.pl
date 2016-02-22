@@ -77,10 +77,17 @@ sub clean_up {
 	
 }
 
+
+# Prints out certain statistics of the original sequence
 sub stats{
 	my $seq = $old_seq->get();
 	my $other = $seq =~ s/([^ACTG])/$1/ig;
-	my $output = "Number of invalid characcters: $other\n";
+	my $A = $seq =~ s/([A])/$1/ig;
+	my $C = $seq =~ s/([C])/$1/ig;
+	my $G = $seq =~ s/([G])/$1/ig;
+	my $T = $seq =~ s/([T])/$1/ig;
+
+	my $output = "Number of invalid characcters: $other\nNumber of A: $A\nNumber of C: $C\nNumber of G: $G\nNumber of T: $T\n";
 	$frame1->messageBox(-message=>$output);
 }
 
