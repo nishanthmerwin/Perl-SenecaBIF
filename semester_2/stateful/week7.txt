@@ -1,0 +1,12 @@
+# Notes from class
+
+- Stateless programming / procedural programming
+	- Web forms are constantly reset. (These are stateless)
+	- Often websites will use cookies to save state. These allow the website to know who the user is and gets purged after a given time. 
+	- Won't be taught in class, but can be done pretty easily in perl
+	- More powerful than .htaccess login
+	- When you login, it sets up a session with a cookies that is some sort of a private key
+- Event driven programming
+	- Done with a desktop programming
+	- Waits until you actually do something. It's always running and just sitting there!
+	- Have to install perl / proper library on laptop
