@@ -1,21 +1,29 @@
+#!/usr/bin/perl
+
+# Author:  Nishanth Merwin
+# Purpose: BIF724 Perl Bioinformatics Semester 161 -- Assignment 2. This program pulls GenBank records
+#          from NCBI's servers and parses them to isolate a single gene.
+
+
+
+# I declare that the attached assignment is wholly my own work in accordance with
+# Seneca Academic Policy. No part of this assignment has been copied manually or
+# electronically from any other source (including web sites) or distributed to other students.
+# Name: Nishanth Merwin
+# ID: 117 318 154
+
+
 use strict;
 use warnings;
 
-
-my $genID = "NC_013993";
-
-my $gene = "COX1";
-
-use Bio::SeqIO;
-
-
-# my $dnaStream = Bio::SeqIO->new(-file=>"dna_nishanth_$gene.fa", -format=>"fasta");
-
-# my $aaStream = Bio::SeqIO->new(-file=>"aa_nishanth_$gene.fa", -format=>"fasta");
-
 use Bio::DB::GenBank;
+use Bio::SeqIO;
 use Bio::Seq;
 
+
+sub get_info_from_acc;
+
+# Prints help message if anything is inputted other than 2 arguments.
 if(scalar(@ARGV) != 2){
 	print <<HERE;
 
@@ -34,45 +42,37 @@ HERE
 else{
 	my $file = $ARGV[0];
 	my $gene = $ARGV[1];
+	my $dnaFile = "dna_nishanth_$gene.fa";
+	my $aaFile = "aa_nishanth_$gene.fa";
 
-
-=pod
-	open(FILE, ">dna_nishanth_$gene.fa");
-	close(FILE);
-	open(FILE, ">aa_nishanth_$gene.fa");
-	close(FILE);
-=cut
-
-	
-	my $dnaStream = Bio::SeqIO->new(-file=>"./dna_nishanth_$gene", -format=>"Fasta");
-	my $aaStream = Bio::SeqIO->new(-file=>"./aa_nishanth_$gene", -format=>"Fasta");
-
+	my $dnaStream = Bio::SeqIO->new(-file=>">$dnaFile", -format=>"Fasta");
+	my $aaStream = Bio::SeqIO->new(-file=>">$aaFile", -format=>"Fasta");
 
 	open(my $fh,"<",$file);
 	foreach my $genID(<$fh>){
-		
+	
+		print "Pulling GenBank record: $genID .....";	
 		my @info = get_info_from_acc($genID, $gene);
 
 		my $dna_seq = Bio::Seq->new(-seq=>$info[1], -id=>$info[0]);
 		my $aa_seq = Bio::Seq->new(-seq=>$info[2], -id=>$info[0]);
 
-
-		my $dnaFH = $dnaStream->fh();
-		my $aaFH = $aaStream->fh();
-
-		print $dnaFH $dna_seq;
-		print $aaFH $aa_seq;		
-
 		$dnaStream->write_seq($dna_seq);
 		$aaStream->write_seq($aa_seq);
+		print "Done\n";
 	}
 	close($fh);
 }
 
 
 
-
-
+# Subroutine to get all the information required from genbank and parse into an array.
+# INPUT:   1st elem --> GenBank ID
+#          2nd elem --> Gene name
+#
+# OUTPUT:  1st elem --> Species name
+#          2nd elem --> DNA sequence of gene
+#          3rd elem --> Amino Acid sequence of protein
 sub get_info_from_acc(@){
 
 	my $genID = shift;
@@ -92,8 +92,6 @@ sub get_info_from_acc(@){
 	$name = $seq->species()->binomial("FULL");
 	$name =~ s/\s/_/g;
 
-
-
 	# Splits the genbank record into features
 	my @features = $seq->get_SeqFeatures();
 	foreach my $feature(@features){
@@ -109,13 +107,13 @@ sub get_info_from_acc(@){
 				my @translations = $feature->get_tag_values("translation");
 				$translation = $translations[0];
 
-				# Getting the DNA;
+				# Getting the DNA
 				my $start = $feature->start();
 				my $end = $feature->end();
 				my $strand = $feature->strand();
 				$DNA = $seq->subseq($start,$end);
 				if($strand == -1){
-					$DNA = $DNA->revcom();
+					$DNA = Bio::Seq->new(-seq=>$DNA)->revcom()->seq();
 				}
 			}
 		}
@@ -124,5 +122,3 @@ sub get_info_from_acc(@){
 	my @output = ($name, $DNA, $translation);
 	return @output;
 }
-
-
